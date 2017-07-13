@@ -8,6 +8,8 @@
  * Written by arcticprogrammer
  * Nanyang Polytechnic 140514M
  * ITNOA,TLOTB
+ * 
+ * version 0.8.901
  *  */
 
 package deckEncryptionPackage;
@@ -43,9 +45,6 @@ public class DeckOperator {
 		Map<Integer, String> mapping = genMap(dealer);
 
 		String finalKey = sb.toString();
-		System.out.println("MacIp: " + mIp);
-		System.out.println("Dealer: " + dealer);
-		System.out.println("keyString: " + keyString);
 		System.out.println("finalKey Size: " + finalKey.length());
 		
 		Deck d = new Deck(mIp, dealer, deckState, mapping);
@@ -183,7 +182,7 @@ public class DeckOperator {
 			
 			dictionary.put(card, characterSet);
 			card++;
-		} while (card != 52);
+		} while (card <= 52);
 		
 		return dictionary;
 		
