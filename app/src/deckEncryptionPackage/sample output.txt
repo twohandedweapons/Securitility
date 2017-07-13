@@ -1,11 +1,21 @@
+//the finalKey determines the length of the dealer variable, which is used to seed Java's SecureRandom function.
 finalKey Size: 12
+
+//the MacIp is formed using the client device's IP and MAC addresses. in this case, it's mine.
 MacIp: Arshad1921681650465D8D5A91
+
+//the Dealer is what is used to seed the SecureRandom function in Java's API. Each successive use of the Dealer rotates it (either left or right, depending on the function calling it), and because of SecureRandom's algorithms, the output will always remain consistently random.
 Dealer: 9a85865A1155
+
+//the Deckstate is an important array that determines in what order the items in Mapping are used for encryption/decryption. Imagine it's a deck of cards, with each card having a string of alpha-numeric characters associated with it. Once shuffled, the program will follow this random shuffled state when trying to encrypt or decrypt a file.
+//ideally, this Deckstate is unique to the device (and subsequently, the account associated with that device), and will be sent to the database and linked permanently to the user account. It must be kept completely secret, and can be considered the "key". If the user wants, it can be stored locally, encrypted by a pin number determined by the user.
 Deckstate: 
 (52)(27)(24)(13)(37)(50)(49)(31)(51)(16)(2)(28)(40)
 (35)(14)(7)(34)(15)(39)(6)(26)(43)(20)(29)(41)(46)
 (3)(44)(18)(42)(19)(11)(45)(10)(23)(32)(9)(17)(21)
 (12)(25)(30)(48)(4)(5)(36)(22)(1)(33)(8)(38)(47)
+
+//the Mapping is essentially a hashmap of sorts, with a length-adjustable string of characters associated to each of the 52 cards in the deck. This can be kept on the device for faster encryption/decryption.
 Mapping: 
 1: ,=|x5h(Ct;L0MF783N[+acRRfgTbGDnlhNxE3[v,CH(hBFxO}ONZ
 2: &j;5W|##xol[3^]PVU}n?_s'(-ET1A<fZdoEW|Y63R/Gycj'Tt}&
