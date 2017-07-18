@@ -14,6 +14,9 @@
 
 package deckEncryptionPackage;
 
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.IOException;
 import java.net.InetAddress;
 import java.net.NetworkInterface;
 import java.net.SocketException;
@@ -44,13 +47,88 @@ public class DeckOperator {
 		ArrayList<Integer> deckState = shuffle(dealer);
 		Map<Integer, String> mapping = genMap(dealer);
 
-		String finalKey = sb.toString();
-		System.out.println("finalKey Size: " + finalKey.length());
+		//String finalKey = sb.toString();
+		//System.out.println("finalKey Size: " + finalKey.length());
 		
 		Deck d = new Deck(mIp, dealer, deckState, mapping);
 		
+		if (saveDeckOnSystem(d))
+			System.out.println("Successfully saved deck on system.");
+		else System.out.println("Failed to save deck on system.");
+		
 		return d;
 		
+	}
+	
+	public static boolean saveDeckOnSystem(Deck d)
+	{
+		FileOutputStream fOut = null;
+		File outFile;
+		String content = printDeckMap(d);
+		
+		//if the directory does not exist, create it
+		File dir = new File("deckMap");
+		if (!dir.exists()) {
+		    System.out.println("creating directory: " + dir.getName());
+		    boolean result = false;
+		
+		    try{
+		        dir.mkdir();
+		        result = true;
+		    } 
+		    catch(SecurityException se){
+		        se.printStackTrace();
+		    }        
+		    if(result) {    
+		        System.out.println("Directory /deckMap created");  
+		    } else {
+		    	System.out.println("Directory /deckMap already exists.");
+		    }
+		}
+		
+		//write actual deckmap.pwk file
+		try {
+			//declare deckMap file
+			outFile = new File("deckMap/deckMap.pwk");
+			
+			//if file doesn't exist, create the file
+			if (!outFile.exists()) {
+				outFile.createNewFile();
+			} else {
+				System.out.println("deckMap.pwk ALREADY EXISTS! ABORTING SAVE");
+				return false;
+			}
+			
+			//declare file writer
+			fOut = new FileOutputStream(outFile);
+			
+			//get byte content of output data
+			byte[] byteContent = content.getBytes();
+			
+			//write to file
+			fOut.write(byteContent);
+			
+			//flush and close
+			fOut.flush();
+			fOut.close();
+			
+			System.out.println("Saved map to deckMap.pwk");
+			
+			return true;
+			
+		} catch (IOException e) {
+			e.printStackTrace();
+		} finally {
+			try {
+				if (fOut != null) {
+					fOut.close();
+				}
+			} catch (IOException e) {
+				e.printStackTrace();
+			}
+		}
+		
+		return false;
 	}
 	
 	private static String getMacIpAddress()
@@ -233,6 +311,21 @@ public class DeckOperator {
 			
 		}
 		
+	}
+	
+	public static String printDeckMap(Deck d)
+	{
+		String output = "";
+		Set set = d.getMapping().entrySet();
+		Iterator i = set.iterator();
+		
+		while (i.hasNext())
+		{
+			Map.Entry<Integer, String> mapEntry = (Map.Entry)i.next();
+			output += mapEntry.getValue() + "\n";
+		}
+		
+		return output;
 	}
 	
 	private static String rotateString(String s, boolean d)
