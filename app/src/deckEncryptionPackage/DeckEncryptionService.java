@@ -10,7 +10,7 @@
  * Nanyang Polytechnic 140514M
  * 2862abc566cba008dbd95bf70dda04f8
  * 
- * version 0.2.501
+ * version 0.2.528
  *  */
 
 package deckEncryptionPackage;
@@ -23,9 +23,21 @@ import java.io.FileOutputStream;
 import java.io.FileReader;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.security.InvalidKeyException;
+import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
+import java.util.Base64;
 import java.util.HashMap;
 import java.util.Map;
+
+import javax.crypto.BadPaddingException;
+import javax.crypto.Cipher;
+import javax.crypto.IllegalBlockSizeException;
+import javax.crypto.KeyGenerator;
+import javax.crypto.NoSuchPaddingException;
+import javax.crypto.SecretKey;
+import javax.crypto.spec.SecretKeySpec;
 
 public class DeckEncryptionService {
 	
@@ -34,7 +46,7 @@ public class DeckEncryptionService {
 	{
 		String keyString = formulateKeyString();
 		String fName = inFile.getName(); //get the name of the input file
-		
+		String fLocation = inFile.getAbsolutePath();
 		
 		//xor file to key
 		byte[] outFileBytes = xorFileToKey(inFile, keyString);
@@ -44,11 +56,11 @@ public class DeckEncryptionService {
 		String destinationFileName = "vault/" + fName + ".pwk";
 		if (convertToFile(destinationFileName, outFileBytes)) {
 			System.out.println("File successfully encrypted!");
-//			if (inFile.delete()) {
-//				System.out.println("inFile deleted from source.");
-//			} else {
-//				System.out.println("Failed to delete inFile from source. However, encrypted file has been saved to the vault, so you may safely delete the inFile.");
-//			}
+			if (inFile.delete()) {
+				System.out.println("inFile deleted from source.");
+			} else {
+				System.out.println("Failed to delete inFile from source. However, encrypted file has been saved to the vault, so you may safely delete the inFile.");
+			}
 			return true;
 		} else {
 			System.out.println("Unable to write the file! ( ENCRYPT )");
@@ -57,7 +69,7 @@ public class DeckEncryptionService {
 		
 	}
 	
-	public static boolean DECRYPT(File inFile)
+	public static boolean DECRYPT(File inFile, String inDirectory)
 	{
 		// << should be the same as encrypt
 		String keyString = formulateKeyString();
@@ -68,11 +80,8 @@ public class DeckEncryptionService {
 		byte[] outFileBytes = xorFileToKey(inFile, keyString);
 		
 		//save file
-		//Scanner sc = new Scanner(System.in);
-		System.out.println("Store to directory: /decrypted");
-		String dirName = "decrypted";
-		//String dirName = sc.nextLine();
-		//sc.close();
+		System.out.println("Store to directory: /" + inDirectory);
+		String dirName = inDirectory;
 		checkDirectoryExistence(false, dirName);
 		
 		fName = fName.replace(".pwk", "");
@@ -80,11 +89,11 @@ public class DeckEncryptionService {
 		
 		if (convertToFile(destinationFileName, outFileBytes)) {
 			System.out.println("File successfully decrypted!");
-//			if (inFile.delete()) {
-//				System.out.println("inFile deleted from source.");
-//			} else {
-//				System.out.println("Failed to delete inFile from source. However, encrypted file has been saved to the vault, so you may safely delete the inFile.");
-//			}
+			if (inFile.delete()) {
+				System.out.println("inFile deleted from vault.");
+			} else {
+				System.out.println("Failed to delete inFile from source. However, decrypted file has been saved at " + dirName + ", so you may safely delete the inFile.");
+			}
 			return true;
 		} else {
 			System.out.println("Unable to write the file! ( DECRYPT )");
@@ -93,8 +102,124 @@ public class DeckEncryptionService {
 	}
 	
 	
+	public static boolean ENCRYPT_WITH_PIN(String PIN, String DATA, String fName)
+	{
+		//mkyong ed-
+		/*---CIPHER BLOCK---*/
+		//init dKey, mainKey, desCipher
+		byte[] dKey = Base64.getDecoder().decode(PIN);
+		SecretKey mainKey = new SecretKeySpec(dKey, 0, dKey.length, "DES");
+		
+		Cipher desCipher = null;
+		try {
+			desCipher = Cipher.getInstance("DES/ECB/PKCS5Padding");
+		} catch (NoSuchAlgorithmException | NoSuchPaddingException e) {
+			System.out.println("Algorithm/Padding exception caught");
+			e.printStackTrace();
+		}
+		/*---CIPHER BLOCK---*/
+		
+		//conv DATA to bytes
+		byte[] byteData = DATA.getBytes();
+		byte[] encryptedData = null;
+		
+		//encrypt
+		try {
+			desCipher.init(Cipher.ENCRYPT_MODE, mainKey);
+		} catch (InvalidKeyException e) {
+			System.out.println("Failed to initialize DES encryption.");
+			e.printStackTrace();
+		}
+		try {
+			encryptedData = desCipher.doFinal(byteData);
+		} catch (IllegalBlockSizeException | BadPaddingException e) {
+			System.out.println("Failed to encrypt final data.");
+			e.printStackTrace();
+		}
+		
+		//save file
+		checkDirectoryExistence(false, "pinVault");
+		String destinationFileName = "pinVault/" + fName + ".pwk";
+		if (convertToFile(destinationFileName, encryptedData)) {
+			System.out.println("Data saved tp " + fName + "!");
+			return true;
+		} else {
+			System.out.println("Unable to write the file! ( ENCRYPT_WITH_PIN )");
+			return false;
+		}
+		
+	}
 	
-	
+	public static String DECRYPT_WITH_PIN(String PIN, String fName)
+	{
+		//mkyong ed-
+		/*---CIPHER BLOCK---*/
+		//init dKey, mainKey, desCipher
+		byte[] dKey = Base64.getDecoder().decode(PIN);
+		SecretKey mainKey = new SecretKeySpec(dKey, 0, dKey.length, "DES");
+		
+		Cipher desCipher = null;
+		try {
+			desCipher = Cipher.getInstance("DES/ECB/PKCS5Padding");
+		} catch (NoSuchAlgorithmException | NoSuchPaddingException e) {
+			System.out.println("Algorithm/Padding exception caught");
+			e.printStackTrace();
+		}
+		/*---CIPHER BLOCK---*/
+		
+		String output = null;
+		
+		//get data from file
+		String destinationFileName = "pinVault/" + fName + ".pwk";
+		File inFile = new File(destinationFileName);
+		InputStream inStream = null;
+		try {
+			inStream = new FileInputStream(destinationFileName);
+		} catch (FileNotFoundException e2) {
+			System.out.println("File not found! (DECRYPT_WITH_PIN)");
+			e2.printStackTrace();
+		}
+		BufferedReader br = new BufferedReader(new InputStreamReader(inStream));
+		StringBuilder sb = new StringBuilder();
+		
+		String line = null;
+		try {
+			line = br.readLine();
+		} catch (IOException e1) {
+			System.out.println("Failed to read line in DECRYPT_WITH_PIN.");
+			e1.printStackTrace();
+		}
+		while (line != null){
+			sb.append(line);
+		}
+		
+		String encryptedData = sb.toString();
+		byte[] encryptedDataBytes = encryptedData.getBytes();
+		byte[] decryptedDataBytes = null;
+		//decrypt
+		try {
+			desCipher.init(Cipher.DECRYPT_MODE, mainKey);
+		} catch (InvalidKeyException e) {
+			System.out.println("Failed to initialize DES decryption.");
+			e.printStackTrace();
+		}
+		try {
+			decryptedDataBytes = desCipher.doFinal(encryptedDataBytes);
+		} catch (IllegalBlockSizeException | BadPaddingException e) {
+			System.out.println("Failed to decrypt final data.");
+			e.printStackTrace();
+		}
+		
+		//return result
+		if (!(decryptedDataBytes == null)) {
+			String result = decryptedDataBytes.toString();
+			return result;
+		} else {
+			return "No return value";
+		}
+		
+		
+	}
 	
 	
 	/*---QOL FUNCTIONS---*/

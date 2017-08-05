@@ -21,7 +21,7 @@ public class DeckApp {
 		if (deckES.ENCRYPT(f)) {
 			System.out.println("main: File encrypted!!!");
 			File eF = new File("vault/fileToBeEncrypted.txt.pwk");
-			if (deckES.DECRYPT(eF)) {
+			if (deckES.DECRYPT(eF, "decrypted")) {
 				System.out.println("main: File decrypted!!!");
 			} else {
 				System.out.println("main: File could not be decrypted.");
