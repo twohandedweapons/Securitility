@@ -1,0 +1,41 @@
+==DeckEncryptionPackage Changelog==
+
+0.0.021
+- First implementation of Deck.java object, DeckOperator.java 
+and DeckApp.java test file.
+	
+0.0.105
+- Made basic changes to logic of DeckOperator.java
+	1. Implemented locksmith() as the firefly spawner
+	2. Implemented saveDeckOnSystem() to save deck data on system
+	3. Implemented addressCleanup() to deal with special characters
+	4. Unique system identifier is now a combination of MAC, IP 
+	addresses and the user's device name
+- Implemented rotateString() to handle rotations (DeckOperator.java)
+
+0.0.135
+- Finalized Deck.java object.
+
+0.1.903
+- First implementation of DeckEncryptionService.java
+	1. Implemented several quality-of-life functions, including
+	byte array conversions to and from strings
+	2. Keystring formulation functions added
+	3. Basic server retrieval function added, but not complete
+
+0.1.915
+- DeckEncryptionService.java
+	1. File conversion and directory checking implemented
+
+0.2.501
+- DeckEncryptionService.java
+	1. Cleaned up encrypt/decrypt functions.
+- All
+	1. Updated author signature
+
+0.2.528
+- DeckEncryptionService.java
+	1. Implemented PIN-based encryption/decryption functions
+- All
+	1. Cleaned up a version error
+	2. Added a readme on how to use the encryption service functions
